@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/amrikmalhans/AI-notes/protos/audio";
+
+service Audio {
+    rpc Get (GetRequest) returns (GetReply) {}
+    rpc Upload (UploadRequest) returns (UploadReply) {}
+}
+
+
+message GetRequest {
+    string ticketID = 1;    
+}
+
+message GetReply {
+    string ticketID = 1;
+    string Err = 2;
+}
+
+
+message UploadRequest {
+    string ticketID = 1;
+    bytes data = 2;
+}
+
+message UploadReply {
+    string ticketID = 1;
+    string Err = 2;
+}
