@@ -34,9 +34,13 @@ func NewHTTPHandler(ep endpoints.Set) http.Handler {
 func decodeHTTPGetRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request endpoints.GetRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		return nil, err
+	// Read Query Parameters
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		return nil, errors.New("unknown argument passed")
 	}
+
+	request.Id = id
 
 	return request, nil
 }
@@ -44,11 +48,27 @@ func decodeHTTPGetRequest(_ context.Context, r *http.Request) (interface{}, erro
 func decodeHTTPUploadRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var request endpoints.UploadRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		return nil, err
+	// Parse the multipart/form-data
+	err := r.ParseMultipartForm(32 << 20)
+
+	if err != nil {
+		return nil, errors.New("invalid argument passed")
+	}
+
+	// Extract the file from the form data
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		return nil, errors.New("invalid argument passed")
+	}
+	defer file.Close()
+
+	request = endpoints.UploadRequest{
+		File:   file,
+		Header: *header,
 	}
 
 	return request, nil
+
 }
 
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {

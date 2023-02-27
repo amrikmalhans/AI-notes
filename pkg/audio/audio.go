@@ -2,8 +2,11 @@ package audio
 
 import (
 	"context"
+	"io"
+	"mime/multipart"
 	"os"
 
+	"cloud.google.com/go/storage"
 	"github.com/go-kit/log"
 )
 
@@ -17,7 +20,27 @@ func (s *audioService) Get(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *audioService) Upload(ctx context.Context, id string) error {
+func (s *audioService) Upload(ctx context.Context, file multipart.File) error {
+
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		logger.Log("errrrrrr", err)
+		return err
+	}
+
+	defer client.Close()
+
+	wc := client.Bucket("audio-files-666").Object("test").NewWriter(ctx)
+	if _, err = io.Copy(wc, file); err != nil {
+		logger.Log("err", err)
+		return err
+	}
+
+	if err := wc.Close(); err != nil {
+		logger.Log("err", err)
+		return err
+	}
+
 	return nil
 }
 

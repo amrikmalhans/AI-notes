@@ -25,15 +25,30 @@ func MakeGetEndpoint(s audio.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetRequest)
 		err := s.Get(ctx, req.Id)
-		return GetResponse{Err: err}, nil
+		return GetResponse{
+			Err: err,
+			Id:  req.Id,
+		}, nil
 	}
 }
 
 func MakeUploadEndpoint(s audio.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UploadRequest)
-		err := s.Upload(ctx, req.Id)
-		return UploadResponse{Err: err}, nil
+
+		file, err := req.Header.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		err = s.Upload(ctx, file)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return UploadResponse{Ok: true}, nil
 	}
 }
 
@@ -46,14 +61,14 @@ func (s *Set) Get(ctx context.Context, id string) error {
 	return getResp.Err
 }
 
-func (s *Set) Upload(ctx context.Context, id string) error {
-	resp, err := s.UploadEndpoint(ctx, UploadRequest{Id: id})
-	if err != nil {
-		return err
-	}
-	uploadResp := resp.(UploadResponse)
-	return uploadResp.Err
-}
+// func (s *Set) Upload(ctx context.Context, file multipart.File) error {
+// 	resp, err := s.UploadEndpoint(ctx, UploadRequest{File: file})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	uploadResp := resp.(UploadResponse)
+// 	return uploadResp.Err
+// }
 
 var logger log.Logger
 

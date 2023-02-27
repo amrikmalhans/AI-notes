@@ -51,8 +51,10 @@ func decodeGRPCGetRequest(_ context.Context, grpcReq interface{}) (interface{}, 
 func decodeGRPCUploadRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*audio.UploadRequest)
 
+	logger.Log("file", req)
+
 	return endpoints.UploadRequest{
-		Id: req.TicketID,
+		// Id: req.TicketID,
 	}, nil
 }
 
